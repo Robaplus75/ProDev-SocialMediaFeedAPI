@@ -61,11 +61,7 @@ jobs:
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/mydatabase
         run: |
           python manage.py test
-
-      - name: Collect static files
-        run: |
-          python manage.py collectstatic --noinput
-
+ 
       - name: Run pycodestyle
         run: |
           python3 -m pycodestyle --exclude=venv,.git,core/settings.py .
