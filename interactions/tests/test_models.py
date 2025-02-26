@@ -1,7 +1,7 @@
 from django.test import TestCase
 from django.contrib.auth.models import User
 from posts.models import Post
-from .models import Interaction
+from ..models import Interaction
 
 
 class InteractionModelTest(TestCase):
