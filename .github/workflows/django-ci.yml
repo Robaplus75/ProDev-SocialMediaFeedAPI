@@ -65,4 +65,4 @@ jobs:
  
       - name: Run pycodestyle
         run: |
-          python3 -m pycodestyle --exclude=venv,.git,core/settings.py .
+          python3 -m pycodestyle --exclude=venv,.git,core/settings.py,*/migrations/* .
