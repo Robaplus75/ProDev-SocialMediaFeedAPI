@@ -19,6 +19,7 @@ build/
 media/
 staticfiles/
 *.DS_Store
+*/migrations/*
 
 # Virtual Environment
 venv/
