@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from posts.models import Post
 from ..models import Interaction
 
+#this edit is in fix import error
 
 class InteractionModelTest(TestCase):
     """
