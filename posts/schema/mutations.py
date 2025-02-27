@@ -3,6 +3,7 @@ from .types import PostType, CommentType
 from ..models import Post, Comment
 from django.contrib.auth.models import User
 
+
 class CreatePost(graphene.Mutation):
     """Mutation to create a new post."""
     class Arguments:
@@ -21,6 +22,7 @@ class CreatePost(graphene.Mutation):
         post = Post(user=user, content=content)
         post.save()
         return CreatePost(post=post, error=None)
+
 
 class UpdatePost(graphene.Mutation):
     """Mutation to update an existing post."""
@@ -42,6 +44,7 @@ class UpdatePost(graphene.Mutation):
         post.save()
         return UpdatePost(post=post, error=None)
 
+
 class DeletePost(graphene.Mutation):
     """Mutation to delete a post."""
     class Arguments:
@@ -58,6 +61,7 @@ class DeletePost(graphene.Mutation):
 
         post.delete()
         return DeletePost(success=True, error=None)
+
 
 class CreateComment(graphene.Mutation):
     """Mutation to create a new comment."""
@@ -84,9 +88,53 @@ class CreateComment(graphene.Mutation):
         comment.save()
         return CreateComment(comment=comment, error=None)
 
+
+class UpdateComment(graphene.Mutation):
+    """Mutation to update an existing comment."""
+
+    class Arguments:
+        id = graphene.ID(required=True)
+        content = graphene.String(required=True)
+
+    comment = graphene.Field(CommentType)
+    error = graphene.String()
+
+    def mutate(self, info, id, content):
+        try:
+            comment = Comment.objects.get(id=id)
+        except Comment.DoesNotExist:
+            return UpdateComment(comment=None, error="Comment not found.")
+
+        comment.content = content
+        comment.save()
+        return UpdateComment(comment=comment, error=None)
+
+
+class DeleteComment(graphene.Mutation):
+    """Mutation to delete a comment."""
+
+    class Arguments:
+        id = graphene.ID(required=True)
+
+    success = graphene.Boolean()
+    error = graphene.String()
+
+    def mutate(self, info, id):
+        try:
+            comment = Comment.objects.get(id=id)
+        except Comment.DoesNotExist:
+            return DeleteComment(success=False, error="Comment not found.")
+
+        comment.delete()
+        return DeleteComment(success=True, error=None)
+
+
 class Mutation(graphene.ObjectType):
     """Mutation class to define all mutations."""
+
     create_post = CreatePost.Field()
     update_post = UpdatePost.Field()
     delete_post = DeletePost.Field()
     create_comment = CreateComment.Field()
+    update_comment = UpdateComment.Field()
+    delete_comment = DeleteComment.Field()
