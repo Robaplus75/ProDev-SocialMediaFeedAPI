@@ -10,17 +10,17 @@ class AddInteraction(graphene.Mutation):
     class Arguments:
         post_id = graphene.Int(required=True, description="ID of the post.")
         interaction_type = graphene.String(
-                required=True,
-                description="Type of interaction (e.g., 'like', 'dislike')."
+            required=True,
+            description="Type of interaction."
         )
 
     success = graphene.Boolean(
-            description="Indicates if the interaction was added."
+        description="Indicates if the interaction was added."
     )
     message = graphene.String(description="Additional information.")
     interaction = graphene.Field(
-            InteractionType,
-            description="The created interaction object."
+        InteractionType,
+        description="The created interaction object."
     )
 
     def mutate(self, info, post_id, interaction_type):
@@ -28,32 +28,53 @@ class AddInteraction(graphene.Mutation):
         user = info.context.user
         if not user.is_authenticated:
             return AddInteraction(
-                    success=False,
-                    message="User  must be logged in."
+                success=False,
+                message="User  must be logged in."
+            )
+
+        # Validate interaction_type against allowed choices
+        allowed_interaction_types = dict(Interaction.INTERACTION_TYPES)
+        if interaction_type not in allowed_interaction_types:
+            return AddInteraction(
+                success=False,
+                message=(
+                    f"Invalid interaction type. Must be one of: "
+                    f"{', '.join(allowed_interaction_types.keys())}."
+                )
             )
 
         post = Post.objects.get(id=post_id)
-        interaction, created = Interaction.objects.get_or_create(
+
+        # Check if the user already has an interaction of the same type for this post
+        existing_interaction = Interaction.objects.filter(
+            user=user,
+            post=post,
+            interaction_type=interaction_type
+        ).first()
+
+        if existing_interaction:
+            return AddInteraction(
+                success=False,
+                message="User  has already added this type of interaction.",
+                interaction=existing_interaction
+            )
+
+        # Create the new interaction
+        interaction = Interaction(
             user=user,
             post=post,
             interaction_type=interaction_type
         )
+        interaction.save()
 
-        if created:
-            post.likes_count += 1
-            post.save()
-            return AddInteraction(
-                    success=True,
-                    message="Interaction added successfully.",
-                    interaction=interaction
-            )
-        else:
-            return AddInteraction(
-                    success=False,
-                    message="Interaction already exists.",
-                    interaction=interaction
-            )
+        post.likes_count += 1
+        post.save()
 
+        return AddInteraction(
+            success=True,
+            message="Interaction added successfully.",
+            interaction=interaction
+        )
 
 class RemoveInteraction(graphene.Mutation):
     """Mutation to remove an interaction from a post."""
@@ -81,10 +102,23 @@ class RemoveInteraction(graphene.Mutation):
                     message="User  must be logged in."
             )
 
+        # Validate interaction_type against allowed choices
+        allowed_interaction_types = dict(Interaction.INTERACTION_TYPES)
+        if interaction_type not in allowed_interaction_types:
+            return AddInteraction(
+                success=False,
+                message=(
+                    f"Invalid interaction type. Must be one of: "
+                    f"{', '.join(allowed_interaction_types.keys())}."
+                )
+            )
+
+        post = Post.objects.get(id=post_id)
+
         try:
             interaction = Interaction.objects.get(
                 user=user,
-                post__id=post_id,
+                post=post,
                 interaction_type=interaction_type
             )
             interaction.delete()
