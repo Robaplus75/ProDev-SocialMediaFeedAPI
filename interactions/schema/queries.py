@@ -1,6 +1,6 @@
 import graphene
 from .types import InteractionType
-from .models import Interaction
+from ..models import Interaction
 
 
 class Query(graphene.ObjectType):
