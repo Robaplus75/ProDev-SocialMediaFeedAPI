@@ -136,5 +136,5 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Graphene Setup Here
 
 GRAPHENE = {
-    "SCHEMA": "posts.schema.schema.schema"
+    "SCHEMA": "core.combined_schema.schema"
 }
