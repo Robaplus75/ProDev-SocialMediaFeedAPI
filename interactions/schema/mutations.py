@@ -45,7 +45,7 @@ class AddInteraction(graphene.Mutation):
 
         post = Post.objects.get(id=post_id)
 
-        # Check if the user already has an interaction of the same type for this post
+        # Check if the user already has an interaction of the same type
         existing_interaction = Interaction.objects.filter(
             user=user,
             post=post,
@@ -75,6 +75,7 @@ class AddInteraction(graphene.Mutation):
             message="Interaction added successfully.",
             interaction=interaction
         )
+
 
 class RemoveInteraction(graphene.Mutation):
     """Mutation to remove an interaction from a post."""
