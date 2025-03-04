@@ -2,6 +2,7 @@ asgiref==3.8.1
 dj-database-url==2.3.0
 Django==5.1.6
 django-environ==0.12.0
+django-graphql-playground==1.0
 graphene==3.4.3
 graphene-django==3.2.2
 graphql-core==3.2.6
