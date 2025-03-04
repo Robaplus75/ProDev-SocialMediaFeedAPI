@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'graphene_django',
     'graphql_playground',
+    'users',
     'posts',
     'interactions',
 ]
