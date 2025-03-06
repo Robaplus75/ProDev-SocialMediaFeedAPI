@@ -55,6 +55,9 @@ jobs:
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/mydatabase
         run: |
           python manage.py makemigrations
+          python manage.py makemigrations users
+          python manage.py makemigrations posts
+          python manage.py makemigrations interactions
           python manage.py migrate
 
       - name: Run tests
