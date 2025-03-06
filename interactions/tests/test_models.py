@@ -1,7 +1,9 @@
 from django.test import TestCase
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from posts.models import Post
 from ..models import Interaction
+
+User = get_user_model()
 
 
 class InteractionModelTest(TestCase):
