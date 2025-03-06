@@ -2,6 +2,7 @@ import graphene
 from .types import PostType, CommentType
 from ..models import Post, Comment
 from django.contrib.auth import get_user_model
+from graphql import GraphQLError
 
 User = get_user_model()
 
@@ -9,18 +10,18 @@ User = get_user_model()
 class CreatePost(graphene.Mutation):
     """Mutation to create a new post."""
     class Arguments:
-        user_id = graphene.ID(required=True)
         content = graphene.String(required=True)
 
     post = graphene.Field(PostType)
     error = graphene.String()
 
-    def mutate(self, info, user_id, content):
-        try:
-            user = User.objects.get(id=user_id)
-        except User.DoesNotExist:
-            return CreatePost(post=None, error="User  not found.")
+    def mutate(self, info, content):
+        user = info.context.user
 
+        if user.is_anonymous:
+            raise graphqlerror("not authenticated!")
+
+        # Create the post using the authenticated user
         post = Post(user=user, content=content)
         post.save()
         return CreatePost(post=post, error=None)
@@ -28,38 +29,68 @@ class CreatePost(graphene.Mutation):
 
 class UpdatePost(graphene.Mutation):
     """Mutation to update an existing post."""
+
     class Arguments:
-        id = graphene.ID(required=True)
+        post_id = graphene.ID(required=True)
         content = graphene.String()
 
     post = graphene.Field(PostType)
     error = graphene.String()
 
-    def mutate(self, info, id, content):
+    def mutate(self, info, post_id, content):
+        # Get the currently logged-in user from the context
+        user = info.context.user
+
+        # Check if the user is authenticated
+        if user.is_anonymous:
+            raise GraphQLError("Not authenticated!")
+
         try:
-            post = Post.objects.get(id=id)
+            post = Post.objects.get(id=post_id)
         except Post.DoesNotExist:
             return UpdatePost(post=None, error="Post not found.")
 
+        # Check if the user is the author of the post
+        if post.user != user:
+            raise GraphQLError(
+                    "You do not have permission to update this post."
+            )
+
+        # Update the post content if provided
         if content:
             post.content = content
         post.save()
+
         return UpdatePost(post=post, error=None)
 
 
 class DeletePost(graphene.Mutation):
     """Mutation to delete a post."""
+
     class Arguments:
-        id = graphene.ID(required=True)
+        post_id = graphene.ID(required=True)
 
     success = graphene.Boolean()
     error = graphene.String()
 
-    def mutate(self, info, id):
+    def mutate(self, info, post_id):
+        # Get the currently logged-in user from the context
+        user = info.context.user
+
+        # Check if the user is authenticated
+        if user.is_anonymous:
+            raise GraphQLError("Not authenticated!")
+
         try:
-            post = Post.objects.get(id=id)
+            post = Post.objects.get(id=post_id)
         except Post.DoesNotExist:
             return DeletePost(success=False, error="Post not found.")
+
+        # Check if the user is the author of the post
+        if post.user != user:
+            raise GraphQLError(
+                    "You do not have permission to delete this post."
+            )
 
         post.delete()
         return DeletePost(success=True, error=None)
@@ -69,22 +100,22 @@ class CreateComment(graphene.Mutation):
     """Mutation to create a new comment."""
     class Arguments:
         post_id = graphene.ID(required=True)
-        user_id = graphene.ID(required=True)
         content = graphene.String(required=True)
 
     comment = graphene.Field(CommentType)
     error = graphene.String()
 
-    def mutate(self, info, post_id, user_id, content):
+    def mutate(self, info, post_id, content):
+        # Get the currently logged-in user from the context
+        user = info.context.user
+
+        if user.is_anonymous:
+            raise GraphQLError("Not authenticated!")
+
         try:
             post = Post.objects.get(id=post_id)
         except Post.DoesNotExist:
             return CreateComment(comment=None, error="Post not found.")
-
-        try:
-            user = User.objects.get(id=user_id)
-        except User.DoesNotExist:
-            return CreateComment(comment=None, error="User  not found.")
 
         comment = Comment(post=post, user=user, content=content)
         comment.save()
@@ -95,17 +126,30 @@ class UpdateComment(graphene.Mutation):
     """Mutation to update an existing comment."""
 
     class Arguments:
-        id = graphene.ID(required=True)
+        comment_id = graphene.ID(required=True)
         content = graphene.String(required=True)
 
     comment = graphene.Field(CommentType)
     error = graphene.String()
 
-    def mutate(self, info, id, content):
+    def mutate(self, info, comment_id, content):
+        # Get the currently logged-in user from the context
+        user = info.context.user
+
+        # Check if the user is authenticated
+        if user.is_anonymous:
+            raise GraphQLError("Not authenticated!")
+
         try:
-            comment = Comment.objects.get(id=id)
+            comment = Comment.objects.get(id=comment_id)
         except Comment.DoesNotExist:
-            return UpdateComment(comment=None, error="Comment not found.")
+            return UpdateComment(success=False, error="Comment not found.")
+
+        # Check if the user is the author of the comment.
+        if comment.user != user:
+            raise GraphQLError(
+                    "You do not have permission to edit this comment"
+            )
 
         comment.content = content
         comment.save()
@@ -116,16 +160,29 @@ class DeleteComment(graphene.Mutation):
     """Mutation to delete a comment."""
 
     class Arguments:
-        id = graphene.ID(required=True)
+        comment_id = graphene.ID(required=True)
 
     success = graphene.Boolean()
     error = graphene.String()
 
-    def mutate(self, info, id):
+    def mutate(self, info, comment_id):
+        # Get the currently logged-in user from the context
+        user = info.context.user
+
+        # Check if the user is authenticated
+        if user.is_anonymous:
+            raise GraphQLError("Not authenticated!")
+
         try:
-            comment = Comment.objects.get(id=id)
+            comment = Comment.objects.get(id=comment_id)
         except Comment.DoesNotExist:
-            return DeleteComment(success=False, error="Comment not found.")
+            return UpdateComment(success=False, error="Comment not found.")
+
+        # Check if the user is the author of the comment.
+        if comment.user != user:
+            raise GraphQLError(
+                    "You do not have permission to delete this comment"
+            )
 
         comment.delete()
         return DeleteComment(success=True, error=None)
