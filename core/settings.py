@@ -54,6 +54,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
 ]
 
 ROOT_URLCONF = 'core.urls'
@@ -142,7 +143,10 @@ AUTH_USER_MODEL = "users.CustomUser"
 # Graphene Setup Here
 
 GRAPHENE = {
-    "SCHEMA": "core.combined_schema.schema"
+    "SCHEMA": "core.combined_schema.schema",
+    "MIDDLEWARE": [
+        "graphql_jwt.middleware.JSONWebTokenMiddleware",
+    ],
 }
 
 AUTHENTICATION_BACKENDS = [
