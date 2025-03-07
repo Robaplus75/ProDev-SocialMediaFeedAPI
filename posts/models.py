@@ -10,6 +10,7 @@ class Post(models.Model):
 
     Attributes:
         user (ForeignKey): The user who created the post.
+        title (CharField): The title for the post.
         content (TextField): The content of the post.
         created_at (DateTimeField): Timestamp when the post was created.
         updated_at (DateTimeField): Timestamp when the post was last updated.
@@ -22,6 +23,7 @@ class Post(models.Model):
         on_delete=models.CASCADE,
         related_name='posts'
     )
+    title = models.CharField(max_length=255)
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -34,6 +36,7 @@ class Post(models.Model):
     class Meta:
         ordering = ['-created_at']  # default ordering: most recent posts first
         indexes = [
+            models.Index(fields=['title']),
             models.Index(fields=['created_at']),
             models.Index(fields=['user']),
         ]

@@ -11,6 +11,7 @@ User = get_user_model()
 class CreatePost(graphene.Mutation):
     """Mutation to create a new post."""
     class Arguments:
+        title = graphene.String(required=True)
         content = graphene.String(required=True)
         image = Upload(required=False)
 
@@ -18,7 +19,7 @@ class CreatePost(graphene.Mutation):
     error = graphene.String()
     success = graphene.Boolean()
 
-    def mutate(self, info, content, image=None):
+    def mutate(self, info, title, content, image=None):
         user = info.context.user
 
         if user.is_anonymous:
@@ -29,7 +30,7 @@ class CreatePost(graphene.Mutation):
             )
 
         # Create the post using the authenticated user
-        post = Post(user=user, content=content, image=image)
+        post = Post(user=user, content=content, image=image, title=title)
         post.save()
         return CreatePost(post=post, error=None, success=True)
 
