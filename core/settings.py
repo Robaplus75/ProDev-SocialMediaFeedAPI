@@ -25,7 +25,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-sa6z@1cu!c-+p6u3&=d2_2w5(@@j4^^wg7svp_4-7w2x+wb1ji')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', '0') == '1'
+DEBUG = os.environ.get('DEBUG', '0') == '0'
 
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')
 
@@ -89,7 +89,7 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # }
 
 DATABASES = {
-    'default': dj_database_url.config(default=os.environ.get('DATABASE_URL', 'postgres://postgres:postgres@localhost:5432/mydatabase'))
+    'default': dj_database_url.config(default=os.environ.get('DATABASE_URL', 'sqlite:///sqlite.db'))
 
 }
 
