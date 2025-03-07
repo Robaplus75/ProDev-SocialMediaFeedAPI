@@ -18,7 +18,8 @@ class PostModelTest(TestCase):
             username='testuser', password='testpass'
         )
         self.post = Post.objects.create(
-            user=self.user, content='This is a test post.'
+            user=self.user, content='This is a test post.',
+            title='title for the post'
         )
 
     def test_post_creation(self):
