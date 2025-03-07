@@ -15,6 +15,7 @@ class Post(models.Model):
         updated_at (DateTimeField): Timestamp when the post was last updated.
         likes_count (PositiveIntegerField): A count of likes for the post.
         comments_count (PositiveIntegerField):A count of comments for the post
+        images (ImageField): images for the post.
     """
     user = models.ForeignKey(
         User,
@@ -26,6 +27,9 @@ class Post(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     likes_count = models.PositiveIntegerField(default=0)
     comments_count = models.PositiveIntegerField(default=0)
+    image = models.ImageField(
+            upload_to='post_images/', blank=True, null=True
+    )
 
     class Meta:
         ordering = ['-created_at']  # default ordering: most recent posts first
