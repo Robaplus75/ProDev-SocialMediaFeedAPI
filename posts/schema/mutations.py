@@ -3,6 +3,7 @@ from .types import PostType, CommentType
 from ..models import Post, Comment
 from django.contrib.auth import get_user_model
 from graphql import GraphQLError
+from graphene_file_upload.scalars import Upload
 
 User = get_user_model()
 
@@ -11,20 +12,26 @@ class CreatePost(graphene.Mutation):
     """Mutation to create a new post."""
     class Arguments:
         content = graphene.String(required=True)
+        image = Upload(required=False)
 
     post = graphene.Field(PostType)
     error = graphene.String()
+    success = graphene.Boolean()
 
-    def mutate(self, info, content):
+    def mutate(self, info, content, image=None):
         user = info.context.user
 
         if user.is_anonymous:
-            raise graphqlerror("not authenticated!")
+            return CreatePost(
+                post=None,
+                error="User is not Authenticated",
+                success=False
+            )
 
         # Create the post using the authenticated user
-        post = Post(user=user, content=content)
+        post = Post(user=user, content=content, image=image)
         post.save()
-        return CreatePost(post=post, error=None)
+        return CreatePost(post=post, error=None, success=True)
 
 
 class UpdatePost(graphene.Mutation):
@@ -36,6 +43,7 @@ class UpdatePost(graphene.Mutation):
 
     post = graphene.Field(PostType)
     error = graphene.String()
+    success = graphene.Boolean()
 
     def mutate(self, info, post_id, content):
         # Get the currently logged-in user from the context
