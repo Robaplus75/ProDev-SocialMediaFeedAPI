@@ -1,6 +1,4 @@
 from django.db import models
-from django.contrib.auth import get_user_model
-
 User = get_user_model()
 
 
@@ -14,8 +12,12 @@ class Post(models.Model):
         content (TextField): The content of the post.
         created_at (DateTimeField): Timestamp when the post was created.
         updated_at (DateTimeField): Timestamp when the post was last updated.
-        likes_count (PositiveIntegerField): A count of likes for the post.
-        comments_count (PositiveIntegerField):A count of comments for the post
+        interactions_count (PositiveIntegerField):
+                        A count of interactions for the post.
+        comments_count (PositiveIntegerField):
+                        A count of comments for the post.
+        shares_count (PositiveIntegerField):
+                        A count of shares for the post.
         images (ImageField): images for the post.
     """
     user = models.ForeignKey(
@@ -27,8 +29,9 @@ class Post(models.Model):
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    likes_count = models.PositiveIntegerField(default=0)
+    interactions_count = models.PositiveIntegerField(default=0)
     comments_count = models.PositiveIntegerField(default=0)
+    shares_count = models.PositiveIntegerField(default=0)
     image = models.ImageField(
             upload_to='post_images/', blank=True, null=True
     )
