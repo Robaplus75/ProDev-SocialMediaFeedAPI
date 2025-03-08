@@ -28,7 +28,7 @@ class PostModelTest(TestCase):
         """
         self.assertEqual(self.post.user, self.user)
         self.assertEqual(self.post.content, 'This is a test post.')
-        self.assertEqual(self.post.likes_count, 0)  # Default value
+        self.assertEqual(self.post.interactions_count, 0)  # Default value
         self.assertEqual(self.post.comments_count, 0)  # Default value
 
     def test_post_string_representation(self):
