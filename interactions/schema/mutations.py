@@ -1,5 +1,5 @@
 import graphene
-from .types import InteractionType
+from .types import InteractionType, InteractionTypeEnum
 from ..models import Interaction
 from posts.models import Post
 
@@ -9,15 +9,17 @@ class AddInteraction(graphene.Mutation):
 
     class Arguments:
         post_id = graphene.Int(required=True, description="ID of the post.")
-        interaction_type = graphene.String(
-            required=True,
-            description="Type of interaction."
+        interaction_type = InteractionTypeEnum(
+                required=True,
+                description="Type of interaction."
         )
 
     success = graphene.Boolean(
         description="Indicates if the interaction was added."
     )
-    message = graphene.String(description="Additional information.")
+    error = graphene.String(
+            description="Error message if the operation failed."
+    )
     interaction = graphene.Field(
         InteractionType,
         description="The created interaction object."
@@ -29,7 +31,7 @@ class AddInteraction(graphene.Mutation):
         if not user.is_authenticated:
             return AddInteraction(
                 success=False,
-                message="User  must be logged in."
+                error="User  must be logged in."
             )
 
         # Validate interaction_type against allowed choices
@@ -37,13 +39,15 @@ class AddInteraction(graphene.Mutation):
         if interaction_type not in allowed_interaction_types:
             return AddInteraction(
                 success=False,
-                message=(
+                error=(
                     f"Invalid interaction type. Must be one of: "
                     f"{', '.join(allowed_interaction_types.keys())}."
                 )
             )
 
-        post = Post.objects.get(id=post_id)
+        post = Post.objects.filter(id=post_id).first()
+        if not post:
+            return AddInteraction(success=False, error="Post not found.")
 
         # Check if the user already has an interaction of the same type
         existing_interaction = Interaction.objects.filter(
@@ -55,7 +59,7 @@ class AddInteraction(graphene.Mutation):
         if existing_interaction:
             return AddInteraction(
                 success=False,
-                message="User  has already added this type of interaction.",
+                error="User  has already added this type of interaction.",
                 interaction=existing_interaction
             )
 
@@ -67,12 +71,12 @@ class AddInteraction(graphene.Mutation):
         )
         interaction.save()
 
-        post.likes_count += 1
         post.save()
+        post.interactions_count += 1
 
         return AddInteraction(
             success=True,
-            message="Interaction added successfully.",
+            error=None,
             interaction=interaction
         )
 
@@ -82,39 +86,41 @@ class RemoveInteraction(graphene.Mutation):
 
     class Arguments:
         post_id = graphene.Int(required=True, description="ID of the post.")
-        interaction_type = graphene.String(
+        interaction_type = InteractionTypeEnum(
                 required=True,
-                description="Type of interaction to remove."
+                description="Type of interaction."
         )
 
     success = graphene.Boolean(
             description="Indicates if the interaction was removed."
     )
-    message = graphene.String(
-            description="Additional information."
+    error = graphene.String(
+            description="Error message if the operation failed."
     )
 
     def mutate(self, info, post_id, interaction_type):
         """Remove an interaction from a post."""
         user = info.context.user
+
+        # Check if User is Authenticated
         if not user.is_authenticated:
             return RemoveInteraction(
                     success=False,
-                    message="User  must be logged in."
+                    error="User  must be logged in."
             )
 
         # Validate interaction_type against allowed choices
         allowed_interaction_types = dict(Interaction.INTERACTION_TYPES)
         if interaction_type not in allowed_interaction_types:
-            return AddInteraction(
+            return RemoveInteraction(
                 success=False,
-                message=(
+                error=(
                     f"Invalid interaction type. Must be one of: "
                     f"{', '.join(allowed_interaction_types.keys())}."
                 )
             )
 
-        post = Post.objects.get(id=post_id)
+        post = Post.objects.filter(id=post_id).first()
 
         try:
             interaction = Interaction.objects.get(
@@ -122,22 +128,26 @@ class RemoveInteraction(graphene.Mutation):
                 post=post,
                 interaction_type=interaction_type
             )
+
             interaction.delete()
-            post.likes_count -= 1
+            post.interactions_count -= 1
             post.save()
+
             return RemoveInteraction(
                     success=True,
-                    message="Interaction removed successfully."
+                    error=None
             )
         except Interaction.DoesNotExist:
             return RemoveInteraction(
                     success=False,
-                    message="Interaction does not exist."
+                    error="Interaction does not exist."
             )
 
 
 class Mutation(graphene.ObjectType):
     """Root mutation class for interactions."""
 
-    add_interaction = AddInteraction.Field()
-    remove_interaction = RemoveInteraction.Field()
+    add_interaction = AddInteraction.Field(name="Post_Interaction_Add")
+    remove_interaction = RemoveInteraction.Field(
+                                name="Post_Interaction_Remove"
+                        )
