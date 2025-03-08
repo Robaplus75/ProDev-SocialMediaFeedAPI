@@ -16,8 +16,13 @@ class Interaction(models.Model):
         created_at (DateTimeField): Timestamp when the interaction was created.
     """
     INTERACTION_TYPES = [
-        ('like', 'Like'),
-        ('dislike', 'Dislike'),
+        ('thumbs_up', 'Thumbs Up'),      # Positive reaction
+        ('thumbs_down', 'Thumbs Down'),  # Negative reaction
+        ('love', 'Love'),                 # Love reaction
+        ('haha', 'Haha'),                 # Laughter reaction
+        ('wow', 'Wow'),                   # Surprise reaction
+        ('sad', 'Sad'),                   # Sad reaction
+        ('angry', 'Angry'),               # Angry reaction
     ]
 
     user = models.ForeignKey(
@@ -31,7 +36,7 @@ class Interaction(models.Model):
         related_name='interactions'
     )
     interaction_type = models.CharField(
-        max_length=10,
+        max_length=20,
         choices=INTERACTION_TYPES
     )
     created_at = models.DateTimeField(auto_now_add=True)
