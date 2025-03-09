@@ -1,6 +1,6 @@
 import graphene
-from .types import PostType, CommentType
-from ..models import Post, Comment
+from .types import PostType, CommentType, ShareType
+from ..models import Post, Comment, Share
 from django.contrib.auth import get_user_model
 from graphql import GraphQLError
 from graphene_file_upload.scalars import Upload
@@ -264,6 +264,73 @@ class DeleteComment(graphene.Mutation):
         return DeleteComment(success=True, error=None)
 
 
+class SharePost(graphene.Mutation):
+    """Mutation to share a post with another user."""
+
+    class Arguments:
+        post_id = graphene.Int(required=True)
+        username = graphene.String(required=True)
+
+    success = graphene.Boolean()
+    error = graphene.String()
+    share = graphene.Field(ShareType)
+
+    def mutate(self, info, post_id, username):
+        """Share a post with another user."""
+        user = info.context.user
+        if not user.is_authenticated:
+            return SharePost(
+                success=False,
+                error="User  must be logged in."
+            )
+
+        # Validate that the post exists
+        post = Post.objects.filter(id=post_id).first()
+        if not post:
+            return SharePost(success=False, error="Post not found.")
+
+        # Validate that the user to share with exists
+        shared_with_user = User.objects.filter(
+                username=username
+        ).first()
+
+        if not shared_with_user:
+            return SharePost(
+                success=False,
+                error="User with entered username is not found."
+            )
+
+        # Check if the user has already shared this post with the same user
+        existing_share = Share.objects.filter(
+            user=user,
+            post=post,
+            shared_with=shared_with_user
+        ).first()
+
+        if existing_share:
+            return SharePost(
+                success=False,
+                error="""
+                    User has already shared this post with the specified user.
+                """,
+                share=existing_share
+            )
+
+        # Create the new share
+        share = Share(
+            user=user,
+            post=post,
+            shared_with=shared_with_user
+        )
+        share.save()
+
+        return SharePost(
+            success=True,
+            error=None,
+            share=share
+        )
+
+
 class Mutation(graphene.ObjectType):
     """Mutation class to define all mutations."""
 
@@ -273,3 +340,4 @@ class Mutation(graphene.ObjectType):
     create_comment = CreateComment.Field(name="Post_Comment_Add")
     update_comment = UpdateComment.Field(name="Post_Comment_update")
     delete_comment = DeleteComment.Field(name="Post_Comment_Delete")
+    share_post = SharePost.Field(name="Post_Share")
