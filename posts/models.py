@@ -86,3 +86,42 @@ class Comment(models.Model):
 
     def __str__(self):
         return f"Comment by {self.user.username} on {self.post.id}"
+
+
+class Share(models.Model):
+    """
+    Model represents shares made by users to a post.
+
+    Attributes:
+        post (ForeignKey): A reference to the Post that is being shared.
+        user (ForeignKey): A reference to the User who shared the post.
+        shared_with (CharField): user that the post was shared with.
+        created_at (DateTimeField): The timestamp when the share was created.
+    """
+
+    post = models.ForeignKey(
+            Post,
+            on_delete=models.CASCADE,
+            related_name='shares'
+    )
+    user = models.ForeignKey(
+            User,
+            on_delete=models.CASCADE,
+            related_name='sent_shares'
+    )
+    shared_with = models.ForeignKey(
+            User,
+            on_delete=models.CASCADE,
+            related_name="received_shares"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['post']),
+            models.Index(fields=['user']),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} shared {self.post.title}"
