@@ -1,6 +1,6 @@
 import graphene
 from graphene_django.types import DjangoObjectType
-from ..models import Post, Comment
+from ..models import Post, Comment, Share
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -22,3 +22,9 @@ class CommentType(DjangoObjectType):
     """GraphQL type for the Comment model."""
     class Meta:
         model = Comment
+
+
+class ShareType(DjangoObjectType):
+    """GraphQL type for the Share model."""
+    class Meta:
+        model = Share
