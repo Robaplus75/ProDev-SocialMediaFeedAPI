@@ -35,13 +35,13 @@ class AddInteraction(graphene.Mutation):
             )
 
         # Validate interaction_type against allowed choices
-        allowed_interaction_types = dict(Interaction.INTERACTION_TYPES)
+        allowed_interaction_types = [e.value for e in InteractionTypeEnum]
         if interaction_type not in allowed_interaction_types:
             return AddInteraction(
                 success=False,
                 error=(
                     f"Invalid interaction type. Must be one of: "
-                    f"{', '.join(allowed_interaction_types.keys())}."
+                    f"{', '.join(allowed_interaction_types)}."
                 )
             )
 
@@ -110,13 +110,13 @@ class RemoveInteraction(graphene.Mutation):
             )
 
         # Validate interaction_type against allowed choices
-        allowed_interaction_types = dict(Interaction.INTERACTION_TYPES)
+        allowed_interaction_types = [e.value for e in InteractionTypeEnum]
         if interaction_type not in allowed_interaction_types:
-            return RemoveInteraction(
+            return AddInteraction(
                 success=False,
                 error=(
                     f"Invalid interaction type. Must be one of: "
-                    f"{', '.join(allowed_interaction_types.keys())}."
+                    f"{', '.join(allowed_interaction_types)}."
                 )
             )
 
