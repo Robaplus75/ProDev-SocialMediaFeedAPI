@@ -64,15 +64,16 @@ class AddInteraction(graphene.Mutation):
             )
 
         # Create the new interaction
+        print("INteractiontype: ", interaction_type.value)
         interaction = Interaction(
             user=user,
             post=post,
-            interaction_type=interaction_type
+            interaction_type=interaction_type.value
         )
         interaction.save()
 
-        post.save()
         post.interactions_count += 1
+        post.save()
 
         return AddInteraction(
             success=True,

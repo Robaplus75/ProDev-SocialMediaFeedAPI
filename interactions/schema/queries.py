@@ -6,13 +6,13 @@ from ..models import Interaction
 class Query(graphene.ObjectType):
     interactions = graphene.List(
             InteractionType,
-            user_id=graphene.Int(),
+            username=graphene.String(),
             post_id=graphene.Int())
 
-    def resolve_interactions(self, info, user_id=None, post_id=None):
-        qs = Interaction.objects.all()
-        if user_id:
-            qs = qs.filter(user__id=user_id)
+    def resolve_interactions(self, info, username=None, post_id=None):
+        qs = Interaction.objects
+        if username:
+            qs = qs.filter(user__username=username)
         if post_id:
             qs = qs.filter(post__id=post_id)
-        return qs
+        return qs.all()
