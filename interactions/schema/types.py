@@ -3,12 +3,6 @@ from graphene_django.types import DjangoObjectType
 from ..models import Interaction
 
 
-class InteractionType(DjangoObjectType):
-    class Meta:
-        model = Interaction
-        fields = ('id', 'user', 'post', 'interaction_type', 'created_at')
-
-
 class InteractionTypeEnum(graphene.Enum):
     """Enum for interaction types."""
     THUMBS_UP = 'thumbs_up'  # Represents a positive reaction
@@ -18,3 +12,9 @@ class InteractionTypeEnum(graphene.Enum):
     WOW = 'wow'  # Represents a surprise reaction
     SAD = 'sad'  # Represents a sad reaction
     ANGRY = 'angry'  # Represents an angry reaction
+
+
+class InteractionType(DjangoObjectType):
+    class Meta:
+        model = Interaction
+        fields = ('id', 'user', 'post', 'interaction_type', 'created_at')
