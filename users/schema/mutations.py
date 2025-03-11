@@ -54,6 +54,7 @@ class LoginUser(graphene.Mutation):
     token = graphene.String()
     user = graphene.Field(UserType)
     error = graphene.String()
+    success = graphene.Boolean()
 
     class Arguments:
         username = graphene.String(required=True)
@@ -65,20 +66,23 @@ class LoginUser(graphene.Mutation):
             return LoginUser(
                     token=None,
                     user=None,
-                    error="User  not found."
+                    error="User  not found.",
+                    success=False
             )
 
         if not user.check_password(password):
             return LoginUser(
                     token=None,
                     user=None,
-                    error="Incorrect password."
+                    error="Incorrect password.",
+                    success=False
             )
         # If Login is Successful
         return LoginUser(
                 token=get_token(user),
                 user=user,
-                error=None
+                error=None,
+                success=True
         )
 
 
@@ -87,5 +91,5 @@ class Mutation(graphene.ObjectType):
     verify_token = graphql_jwt.Verify.Field()
     refresh_token = graphql_jwt.Refresh.Field()
 
-    create_user = CreateUser.Field()
-    login_user = LoginUser.Field()
+    create_user = CreateUser.Field(name="UserCreate")
+    login_user = LoginUser.Field(name="UserToken")
